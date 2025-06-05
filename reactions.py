@@ -1,9 +1,7 @@
 import cv2
 import mediapipe as mp
 import random
-import math
 
-mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
 class Emoji:
@@ -46,6 +44,7 @@ class Emoji:
 from Detections.thumbs_up_detector import ThumbsUpDetector
 from Detections.peace_detector import PeaceDetector
 from Detections.heart_detector import HeartDetector
+# mp_drawing = mp.solutions.drawing_utils
 
 class Reactions:
     def __init__(self):
@@ -64,14 +63,14 @@ class Reactions:
 
         if results.multi_hand_landmarks:
             hands = results.multi_hand_landmarks
-            for hand_landmarks in hands:
-                mp_drawing.draw_landmarks(
-                    frame,
-                    hand_landmarks,
-                    mp_hands.HAND_CONNECTIONS,
-                    mp_drawing.DrawingSpec(color=(0, 0, 255), thickness=2, circle_radius=2),
-                    mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=2)
-                )
+            # for hand_landmarks in hands:
+            #     mp_drawing.draw_landmarks(
+            #         frame,
+            #         hand_landmarks,
+            #         mp_hands.HAND_CONNECTIONS,
+            #         mp_drawing.DrawingSpec(color=(0, 0, 255), thickness=2, circle_radius=2),
+            #         mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=2)
+            #     )
 
             self.heart_detector.detect(hands, frame)
             if len(hands) == 1:
