@@ -14,7 +14,7 @@ with pyvirtualcam.Camera(width=640, height=480, fps=30) as cam:
         ret, frame = cap.read()
         if not ret:
             break
-
+        frame = cv2.flip(frame, 1)
         reactions_handler.process_frame(frame)
 
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
