@@ -5,4 +5,4 @@ Detections/__pycache__/
 *.pyd
 *.so
 .venv/
-assets/Demo.mp4
+assets/Demo*.mp4
