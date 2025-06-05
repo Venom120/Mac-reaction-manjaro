@@ -1,5 +1,0 @@
-mediapipe
-opencv-python
-pyvirtualcam
-numpy
-flask
