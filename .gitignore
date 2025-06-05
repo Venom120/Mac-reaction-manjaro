@@ -1,0 +1,8 @@
+__pycache__/
+Detections/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.venv/
+assets/Demo.mp4
