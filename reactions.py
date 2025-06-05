@@ -46,7 +46,7 @@ from Detections.peace_detector import PeaceDetector
 from Detections.heart_detector import HeartDetector
 from Detections.blush_detector import BlushDetector
 mp_drawing = None
-mp_drawing = mp.solutions.drawing_utils
+# mp_drawing = mp.solutions.drawing_utils
 
 class Reactions:
     def __init__(self):
