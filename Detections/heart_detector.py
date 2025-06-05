@@ -30,10 +30,16 @@ class HeartDetector:
         thumb1 = hand1[mp_hands.HandLandmark.THUMB_TIP]
         index1_tip = hand1[mp_hands.HandLandmark.INDEX_FINGER_TIP]
         index1_pip = hand1[mp_hands.HandLandmark.INDEX_FINGER_PIP]
+        wrist1 = hand1[mp_hands.HandLandmark.WRIST]
 
         thumb2 = hand2[mp_hands.HandLandmark.THUMB_TIP]
         index2_tip = hand2[mp_hands.HandLandmark.INDEX_FINGER_TIP]
         index2_pip = hand2[mp_hands.HandLandmark.INDEX_FINGER_PIP]
+        wrist2 = hand2[mp_hands.HandLandmark.WRIST]
+
+        # Wrist distance check (normalized units, adjust threshold as needed)
+        if distance(wrist1, wrist2) < 0.25:
+            return
 
         # 1. Check fingertip distances
         if distance(thumb1, thumb2) > 0.09 or distance(index1_tip, index2_tip) > 0.09:
@@ -44,8 +50,8 @@ class HeartDetector:
             return
 
         # 3. Angle V-shape check (optional but helps accuracy)
-        angle1 = angle_between(thumb1, index1_tip, hand1[mp_hands.HandLandmark.WRIST])
-        angle2 = angle_between(thumb2, index2_tip, hand2[mp_hands.HandLandmark.WRIST])
+        angle1 = angle_between(thumb1, index1_tip, wrist1)
+        angle2 = angle_between(thumb2, index2_tip, wrist2)
         if not (30 < angle1 < 65 and 30 < angle2 < 65):
             return
 
