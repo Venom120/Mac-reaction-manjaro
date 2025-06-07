@@ -3,6 +3,7 @@ import mediapipe as mp
 import random
 
 mp_hands = mp.solutions.hands
+mp_face_detection = mp.solutions.face_detection
 
 class Emoji:
     def __init__(self, x, y, vx, vy, scale, image_path):
@@ -46,15 +47,16 @@ from Detections.peace_detector import PeaceDetector
 from Detections.heart_detector import HeartDetector
 from Detections.blush_detector import BlushDetector
 from Detections.fist_bump_detector import FistBumpDetector
+from Detections.salute_detector import SaluteDetector # Import the new detector
 from reaction_manager import ReactionManager # Import the new class
 mp_drawing = None
-mp_drawing = mp.solutions.drawing_utils
+# mp_drawing = mp.solutions.drawing_utils
 
 class Reactions:
     def __init__(self):
-        # Initialize MediaPipe Hands. For GPU acceleration, ensure you have the correct MediaPipe package (e.g., mediapipe-gpu)
-        # installed and your system is configured for GPU usage (CUDA or OpenGL).
+        # Initialize MediaPipe Hands and Face Detection
         self.hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.9)
+        self.face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.7)
         self.active_emojis = []
         self.reaction_manager = ReactionManager() # Instantiate ReactionManager
         self.thumbs_up_detector = ThumbsUpDetector(self, self.reaction_manager) # Pass manager
@@ -62,41 +64,57 @@ class Reactions:
         self.heart_detector = HeartDetector(self, self.reaction_manager) # Pass manager
         self.blush_detector = BlushDetector(self, self.reaction_manager) # Pass manager
         self.fist_bump_detector = FistBumpDetector(self, self.reaction_manager) # Pass manager
+        self.salute_detector = SaluteDetector(self, self.reaction_manager) # Instantiate the new detector
 
 
     def process_frame(self, frame):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = self.hands.process(rgb)
 
-        if results.multi_hand_landmarks:
-            hands = results.multi_hand_landmarks
-            if mp_drawing:
-                for hand_landmarks in hands:
-                    mp_drawing.draw_landmarks(
-                        frame,
-                        hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS,
-                        mp_drawing.DrawingSpec(color=(0, 0, 255), thickness=2, circle_radius=2),
-                        mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=2)
-                    )
+        # Process for hands
+        hand_results = self.hands.process(rgb)
+        hands = hand_results.multi_hand_landmarks if hand_results.multi_hand_landmarks else None
 
-            # Only run detectors if no reaction is currently active
-            if not self.reaction_manager.is_reaction_active():
-                self.thumbs_up_detector.detect(hands, frame)
-                self.peace_detector.detect(hands, frame)
-                if len(hands) == 2:
-                    self.heart_detector.detect(hands, frame)
-                    self.blush_detector.detect(hands, frame)
-                    self.fist_bump_detector.detect(hands, frame)
+        # Process for faces
+        face_results = self.face_detection.process(rgb)
+        faces = face_results.detections if face_results.detections else None
+
+        # Draw hand landmarks
+        if hands and mp_drawing:
+            for hand_landmarks in hands:
+                mp_drawing.draw_landmarks(
+                    frame,
+                    hand_landmarks,
+                    mp_hands.HAND_CONNECTIONS,
+                    mp_drawing.DrawingSpec(color=(0, 0, 255), thickness=2, circle_radius=2),
+                    mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=2)
+                )
+
+        # # Draw face detections
+        if mp_drawing:
+            if faces and mp_drawing:
+                for detection in faces:
+                    mp_drawing.draw_detection(frame, detection)
+
+
+        # Only run detectors if no reaction is currently active
+        if not self.reaction_manager.is_reaction_active():
+            self.thumbs_up_detector.detect(hands, frame)
+            self.peace_detector.detect(hands, frame)
+            if hands and len(hands) == 2:
+                self.heart_detector.detect(hands, frame)
+                self.blush_detector.detect(hands, frame)
+                self.fist_bump_detector.detect(hands, frame)
+            self.salute_detector.detect(hands, frame) # SaluteDetector now handles its own face detection
 
 
         # Always apply effects, as they manage their own duration
-        # Pass the detected hand landmarks to apply_effect methods
-        self.thumbs_up_detector.apply_effect(frame, results.multi_hand_landmarks)
-        self.peace_detector.apply_effect(frame, results.multi_hand_landmarks)
-        self.heart_detector.apply_effect(frame, results.multi_hand_landmarks)
-        self.blush_detector.apply_effect(frame, results.multi_hand_landmarks)
-        self.fist_bump_detector.apply_effect(frame, results.multi_hand_landmarks)
+        # Pass the detected hand landmarks and face detections to apply_effect methods
+        self.thumbs_up_detector.apply_effect(frame, hands)
+        self.peace_detector.apply_effect(frame, hands)
+        self.heart_detector.apply_effect(frame, hands)
+        self.blush_detector.apply_effect(frame, hands)
+        self.fist_bump_detector.apply_effect(frame, hands)
+        self.salute_detector.apply_effect(frame, hands, faces) # Pass face detections to salute effect
 
         self.update_and_draw_emojis(frame)
 
