@@ -7,29 +7,21 @@ from Detections.face_detector import FaceDetector
 mp_hands = mp.solutions.hands
 
 class BlushDetector(BaseDetector):
-    def __init__(self, emoji_spawner):
+    def __init__(self, emoji_spawner, reaction_manager):
         super().__init__(emoji_spawner)
+        self.reaction_manager = reaction_manager # Store the ReactionManager instance
         self.blush_active = False
-        self.blush_duration = 50  # frames
+        self.blush_duration = 40  # frames
         self.blush_timer = 0
         self.face_detector = FaceDetector()
 
     def detect(self, hands, frame):
+        # If another reaction is active, do not perform detection
+        if self.reaction_manager.is_reaction_active():
+            return
+
         faces = self.face_detector.detect(frame)
 
-        # Cancel blush if hands are gone even though face is present
-        if self.blush_active and self.blush_timer > 0:
-            if len(hands) < 2:
-                self.blush_timer = 0
-                self.blush_active = False
-                return
-
-            if faces:
-                self.draw_blush(frame, faces)
-            self.blush_timer -= 1
-            if self.blush_timer <= 0:
-                self.blush_active = False
-            return
         if not faces or len(hands) != 2:
             self.blush_active = False
             return
@@ -82,10 +74,36 @@ class BlushDetector(BaseDetector):
                 )
 
         if pointing_inward and fingers_curled(left_hand, 'left') and fingers_curled(right_hand, 'right'):
-            self.blush_active = True
-            self.blush_timer = self.blush_duration
+            if not self.blush_active:
+                print("BlushDetector: Blush gesture detected!")
+                self.blush_active = True
+                self.blush_timer = self.blush_duration
+                self.reaction_manager.set_reaction_active(True) # Set reaction active
         else:
             self.blush_active = False
+
+
+    def apply_effect(self, frame, hands_landmarks):
+        if self.blush_active and self.blush_timer > 0:
+            # Cancel blush if hands are gone even though face is present
+            if not hands_landmarks or len(hands_landmarks) < 2:
+                self.blush_timer = 0
+                self.blush_active = False
+                self.reaction_manager.set_reaction_active(False) # Set reaction inactive
+                return
+
+            faces = self.face_detector.detect(frame)
+            if faces:
+                self.draw_blush(frame, faces)
+            self.blush_timer -= 1
+            if self.blush_timer <= 0:
+                self.blush_active = False
+                self.reaction_manager.set_reaction_active(False) # Set reaction inactive
+        elif self.blush_active and self.blush_timer <= 0:
+             # This case handles when blush_active is True but timer ran out in a previous frame
+             # Ensure reaction is set to inactive
+             self.blush_active = False
+             self.reaction_manager.set_reaction_active(False)
 
     def draw_blush(self, frame, faces):
         if not faces:

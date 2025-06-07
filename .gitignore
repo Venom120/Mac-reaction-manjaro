@@ -6,3 +6,4 @@ Detections/__pycache__/
 *.so
 .venv/
 assets/Demo*.mp4
+assets/Demo*.mkv
