@@ -8,20 +8,6 @@ mp_hands = mp.solutions.hands
 
 class SaluteDetector(BaseDetector):
     def __init__(self, emoji_spawner, reaction_manager):
-        super().__init__(emoji_spawner)
-        self.reaction_manager = reaction_manager
-        self.is_effect_active = False
-        self.effect_duration = 60 # frames
-        self.current_effect_frame = 0
-        self.salute_image_path = "assets/salute.png"
-        self.salute_image = cv2.imread(self.salute_image_path, cv2.IMREAD_UNCHANGED)
-        if self.salute_image is None:
-            print(f"Error loading image: {self.salute_image_path}")
-        else:
-            # Ensure image has an alpha channel for transparency
-            if self.salute_image.shape[2] == 3:
-                self.salute_image = cv2.cvtColor(self.salute_image, cv2.COLOR_BGR2BGRA)
-
         self.face_detector = FaceDetector() # Instantiate FaceDetector
         super().__init__(emoji_spawner)
         self.reaction_manager = reaction_manager
@@ -29,9 +15,9 @@ class SaluteDetector(BaseDetector):
         self.effect_duration = 60 # frames
         self.current_effect_frame = 0
         # Thresholds for salute detection
-        self.hand_flat_horizontal_threshold = 0.02
+        self.hand_flat_horizontal_threshold = 0.04
         self.wrist_near_eye_level_threshold = 0.04
-        self.wrist_aligned_with_face_threshold = 0.45
+        self.wrist_aligned_with_face_threshold = 0.5
         self.salute_image_path = "assets/salute.png"
         self.salute_image = cv2.imread(self.salute_image_path, cv2.IMREAD_UNCHANGED)
         if self.salute_image is None:
@@ -102,7 +88,6 @@ class SaluteDetector(BaseDetector):
         elif not is_salute and self.is_effect_active:
              # If salute is no longer detected and effect is active, start fading out
              # The fade out will be handled in apply_effect by the frame counter
-             pass # No change needed here, apply_effect handles the countdown
              pass # No change needed here, apply_effect handles the countdown
 
 

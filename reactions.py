@@ -124,7 +124,7 @@ class Reactions:
         cy = h - 100
         vx = random.uniform(-2, 2)
         vy = random.uniform(-10, -7) # Increased upward velocity
-        scale = random.uniform(0.4, 0.6)  # Scale factor for emoji size
+        scale = random.uniform(1, 1.2)  # Scale factor for emoji size
         self.active_emojis.append(Emoji(cx, cy, vx, vy, scale, image_path))
 
     def update_and_draw_emojis(self, frame):
